@@ -1,0 +1,1 @@
+export async function GET(request:Request){const origin=new URL(request.url).origin;return new Response(null,{status:302,headers:{location:`${origin}/explore`,"set-cookie":"renda_x_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0"}})}
