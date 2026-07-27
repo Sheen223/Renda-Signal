@@ -21,9 +21,12 @@ test("Renda Signal multi-page product and metadata are wired", async () => {
   assert.match(explore, /\/api\/auth\/x\/start/);
   assert.match(explore, /COMING SOON/);
   assert.match(workspace, /Your attention has value/);
-  assert.match(workspace, /Approve & release/);
+  assert.match(workspace, /\/api\/signals/);
+  assert.match(workspace, /No signals yet/);
+  assert.doesNotMatch(workspace, /@david|@somiari|SIG-1042/);
   assert.match(shell, /\/api\/auth\/x\/me/);
   assert.match(shell, /profile\.username/);
+  assert.doesNotMatch(shell, /0x7A91|For me <i>3/);
   assert.match(authStart, /code_challenge_method:"S256"/);
   assert.match(authCallback, /\/2\/oauth2\/token/);
   assert.match(authCallback, /\/2\/users\/me/);
