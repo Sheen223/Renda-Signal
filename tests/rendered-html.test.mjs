@@ -43,6 +43,9 @@ test("Renda Signal multi-page product and metadata are wired", async () => {
   assert.match(newSignal, /Minimum 48 hours/);
   assert.match(newSignal, /\/x\/share\?id=/);
   assert.match(shareSignal, /navigator\.share/);
+  assert.match(shareSignal, /Hello \$\{signal\.target_handle\}/);
+  assert.match(shareSignal, /Post offer on X/);
+  assert.doesNotMatch(shareSignal, /Open X composer/);
   assert.match(shareSignal, /twitter\.com\/intent\/tweet/);
   assert.match(shareSignal, /canvas\.toBlob/);
   assert.match(setup, /deployContract/);
