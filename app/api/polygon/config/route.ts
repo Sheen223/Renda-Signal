@@ -1,2 +1,3 @@
 import {getPolygonConfig} from "@/lib/polygon";
-export async function GET(){const config=getPolygonConfig();return config?Response.json({configured:true,...config}):Response.json({configured:false,chainId:80002,chainName:"Polygon Amoy",tokenSymbol:"tUSDT",message:"Testnet contracts have not been deployed yet."})}
+import {env} from "cloudflare:workers";
+export async function GET(){const config=getPolygonConfig();if(config)return Response.json({configured:true,...config});const e=env as unknown as Record<string,string|undefined>;return Response.json({configured:false,chainId:80002,chainName:"Polygon Amoy",rpcUrl:e.AMOY_RPC_URL||"https://polygon-amoy.drpc.org",explorerUrl:"https://amoy.polygonscan.com",tokenSymbol:"tUSDT",arbitratorAddress:e.ARBITRATOR_ADDRESS,identitySignerAddress:e.IDENTITY_SIGNER_ADDRESS,message:"Testnet contracts have not been deployed yet."})}
