@@ -3,10 +3,14 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("Renda Signal multi-page product and metadata are wired", async () => {
-  const [page, explore, workspace, shell, newSignal, shareSignal, setup, polygon, signalsApi, layout, contract, testToken, authStart, authCallback] = await Promise.all([
+  const [page, explore, workspace, actions, evidence, acceptApi, actionApi, shell, newSignal, shareSignal, setup, polygon, signalsApi, layout, contract, testToken, authStart, authCallback] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/explore/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/components/signal-workspace.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/components/signal-actions.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/signals/evidence/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/signals/accept/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/signals/action/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/components/x-shell.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/x/new/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/x/share/page.tsx", import.meta.url), "utf8"),
@@ -33,6 +37,13 @@ test("Renda Signal multi-page product and metadata are wired", async () => {
   assert.match(workspace, /Post to X/);
   assert.match(workspace, /Recover funding/);
   assert.match(workspace, /funding_pending/);
+  assert.match(actions, /Accept funded request/);
+  assert.match(actions, /Images, video, audio or documents/);
+  assert.match(actions, /Request mutual cancellation/);
+  assert.match(evidence, /video\//);
+  assert.match(evidence, /audio\//);
+  assert.match(acceptApi, /IDENTITY_SIGNER_SECRET/);
+  assert.match(actionApi, /cancel_requested/);
   assert.doesNotMatch(workspace, /@david|@somiari|SIG-1042/);
   assert.match(shell, /\/api\/auth\/x\/me/);
   assert.match(shell, /profile\.username/);
