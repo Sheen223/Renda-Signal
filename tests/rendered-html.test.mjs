@@ -44,7 +44,9 @@ test("Renda Signal multi-page product and metadata are wired", async () => {
   assert.match(newSignal, /\/x\/share\?id=/);
   assert.match(shareSignal, /Hello \$\{signal\.target_handle\}/);
   assert.match(shareSignal, /Post message to X/);
-  assert.match(shareSignal, /Download Renda image/);
+  assert.match(shareSignal, /Download payment card/);
+  assert.match(shareSignal, /Make sure to add the payment card to your tweet/);
+  assert.match(shareSignal, /target="_blank"/);
   assert.doesNotMatch(shareSignal, /Open X composer/);
   assert.match(shareSignal, /twitter\.com\/intent\/tweet/);
   assert.match(shareSignal, /canvas\.toBlob/);
