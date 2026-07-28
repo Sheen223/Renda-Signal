@@ -13,6 +13,8 @@ export const escrowAbi=parseAbi([
   "function fundRequest(bytes32 targetIdentity,bytes32 termsHash,uint256 total,uint256 attentionFee,uint64 acceptBy,uint64 deliverBy,address arbitrator) returns (uint256)",
   "function acceptRequest(uint256 id,uint64 authorizationExpiry,bytes32 nonce,bytes signature)",
   "function submitEvidence(uint256 id,bytes32 evidenceHash)",
+  "function approve(uint256 id)",
+  "function reclaimUnaccepted(uint256 id)",
   "function proposeSettlement(uint256 id,uint256 employerAmount,uint256 employeeAmount)",
   "function acceptSettlement(uint256 id)",
   "function openDispute(uint256 id)",
