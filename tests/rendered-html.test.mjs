@@ -31,6 +31,8 @@ test("Renda Signal multi-page product and metadata are wired", async () => {
   assert.match(workspace, /No signals yet/);
   assert.match(workspace, /SHARING REMINDER/);
   assert.match(workspace, /Post to X/);
+  assert.match(workspace, /Recover funding/);
+  assert.match(workspace, /funding_pending/);
   assert.doesNotMatch(workspace, /@david|@somiari|SIG-1042/);
   assert.match(shell, /\/api\/auth\/x\/me/);
   assert.match(shell, /profile\.username/);
@@ -48,6 +50,9 @@ test("Renda Signal multi-page product and metadata are wired", async () => {
   assert.match(polygon, /AMOY_CHAIN_ID=80002/);
   assert.match(signalsApi, /waitForTransactionReceipt/);
   assert.match(signalsApi, /RequestFunded/);
+  assert.match(signalsApi, /acceptedTermsHashes/);
+  assert.match(signalsApi, /funding_pending/);
+  assert.match(newSignal, /\.trim\(\)/);
   assert.match(authStart, /code_challenge_method:"S256"/);
   assert.match(authCallback, /\/2\/oauth2\/token/);
   assert.match(authCallback, /\/2\/users\/me/);
