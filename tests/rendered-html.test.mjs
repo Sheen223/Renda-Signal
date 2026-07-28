@@ -29,6 +29,8 @@ test("Renda Signal multi-page product and metadata are wired", async () => {
   assert.match(workspace, /Your attention has value/);
   assert.match(workspace, /\/api\/signals/);
   assert.match(workspace, /No signals yet/);
+  assert.match(workspace, /SHARING REMINDER/);
+  assert.match(workspace, /Post to X/);
   assert.doesNotMatch(workspace, /@david|@somiari|SIG-1042/);
   assert.match(shell, /\/api\/auth\/x\/me/);
   assert.match(shell, /profile\.username/);
