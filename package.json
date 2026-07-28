@@ -11,14 +11,16 @@
     "start": "vinext start",
     "test": "npm run build && node --test tests/rendered-html.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "contracts:compile": "node scripts/compile-contracts.mjs"
   },
   "dependencies": {
     "@nimiq/mini-app-sdk": "^0.1.0",
     "drizzle-orm": "0.45.2",
     "next": "16.2.6",
     "react": "19.2.6",
-    "react-dom": "19.2.6"
+    "react-dom": "19.2.6",
+    "viem": "^2.55.10"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",
@@ -32,6 +34,7 @@
     "eslint": "9.39.4",
     "eslint-config-next": "16.2.6",
     "react-server-dom-webpack": "19.2.6",
+    "solc": "^0.8.36",
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",
     "vinext": "0.0.50",

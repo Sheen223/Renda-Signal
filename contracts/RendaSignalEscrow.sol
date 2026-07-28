@@ -31,6 +31,7 @@ contract RendaSignalEscrow {
     mapping(uint256 => Request) public requests;
     mapping(uint256 => Settlement) public settlements;
     mapping(bytes32 => bool) public usedAuthorizations;
+    uint256 private unlocked = 1;
 
     event RequestFunded(uint256 indexed id, address indexed employer, bytes32 indexed targetIdentity, uint256 total);
     event RequestAccepted(uint256 indexed id, address indexed employee, uint256 attentionFee);
@@ -41,6 +42,7 @@ contract RendaSignalEscrow {
 
     modifier onlyEmployer(uint256 id) { require(msg.sender == requests[id].employer, "not employer"); _; }
     modifier onlyEmployee(uint256 id) { require(msg.sender == requests[id].employee, "not employee"); _; }
+    modifier nonReentrant() { require(unlocked == 1, "reentrant"); unlocked = 2; _; unlocked = 1; }
 
     constructor(address token_, address identitySigner_) {
         require(token_ != address(0) && identitySigner_ != address(0), "zero address");
@@ -48,18 +50,18 @@ contract RendaSignalEscrow {
         identitySigner = identitySigner_;
     }
 
-    function fundRequest(bytes32 targetIdentity, bytes32 termsHash, uint256 total, uint256 attentionFee, uint64 acceptBy, uint64 deliverBy, address arbitrator) external returns (uint256 id) {
+    function fundRequest(bytes32 targetIdentity, bytes32 termsHash, uint256 total, uint256 attentionFee, uint64 acceptBy, uint64 deliverBy, address arbitrator) external nonReentrant returns (uint256 id) {
         require(targetIdentity != bytes32(0) && termsHash != bytes32(0), "missing terms");
         require(total > 0 && attentionFee <= total, "bad amount");
         require(block.timestamp < acceptBy && acceptBy < deliverBy, "bad deadline");
         require(arbitrator != address(0), "no arbitrator");
         id = nextRequestId++;
         requests[id] = Request(msg.sender, address(0), arbitrator, total, attentionFee, acceptBy, deliverBy, targetIdentity, termsHash, bytes32(0), Status.Funded);
-        require(token.transferFrom(msg.sender, address(this), total), "funding failed");
+        _safeTransferFrom(msg.sender, address(this), total);
         emit RequestFunded(id, msg.sender, targetIdentity, total);
     }
 
-    function acceptRequest(uint256 id, uint64 authorizationExpiry, bytes32 nonce, bytes calldata signature) external {
+    function acceptRequest(uint256 id, uint64 authorizationExpiry, bytes32 nonce, bytes calldata signature) external nonReentrant {
         Request storage item = requests[id];
         require(item.status == Status.Funded && block.timestamp <= item.acceptBy, "not open");
         require(block.timestamp <= authorizationExpiry, "authorization expired");
@@ -69,7 +71,7 @@ contract RendaSignalEscrow {
         usedAuthorizations[digest] = true;
         item.employee = msg.sender;
         item.status = Status.Accepted;
-        if (item.attentionFee > 0) require(token.transfer(msg.sender, item.attentionFee), "attention transfer failed");
+        if (item.attentionFee > 0) _safeTransfer(msg.sender, item.attentionFee);
         emit RequestAccepted(id, msg.sender, item.attentionFee);
     }
 
@@ -81,20 +83,20 @@ contract RendaSignalEscrow {
         emit EvidenceSubmitted(id, evidenceHash);
     }
 
-    function approve(uint256 id) external onlyEmployer(id) {
+    function approve(uint256 id) external onlyEmployer(id) nonReentrant {
         Request storage item = requests[id];
         require(item.status == Status.Submitted, "not submitted");
         uint256 remaining = item.total - item.attentionFee;
         item.status = Status.Settled;
-        require(token.transfer(item.employee, remaining), "release failed");
+        _safeTransfer(item.employee, remaining);
         emit RequestSettled(id, 0, remaining);
     }
 
-    function reclaimUnaccepted(uint256 id) external onlyEmployer(id) {
+    function reclaimUnaccepted(uint256 id) external onlyEmployer(id) nonReentrant {
         Request storage item = requests[id];
         require(item.status == Status.Funded && block.timestamp > item.acceptBy, "not reclaimable");
         item.status = Status.Refunded;
-        require(token.transfer(item.employer, item.total), "refund failed");
+        _safeTransfer(item.employer, item.total);
         emit RequestSettled(id, item.total, 0);
     }
 
@@ -115,7 +117,7 @@ contract RendaSignalEscrow {
         emit SettlementProposed(id, msg.sender, employerAmount, employeeAmount);
     }
 
-    function acceptSettlement(uint256 id) external {
+    function acceptSettlement(uint256 id) external nonReentrant {
         Request storage item = requests[id];
         Settlement memory deal = settlements[id];
         require(deal.proposer != address(0) && deal.proposer != msg.sender, "bad acceptance");
@@ -123,7 +125,7 @@ contract RendaSignalEscrow {
         _settle(id, deal.employerAmount, deal.employeeAmount);
     }
 
-    function arbitrate(uint256 id, uint256 employerAmount, uint256 employeeAmount) external {
+    function arbitrate(uint256 id, uint256 employerAmount, uint256 employeeAmount) external nonReentrant {
         Request storage item = requests[id];
         require(msg.sender == item.arbitrator && item.status == Status.Disputed, "not arbitrator");
         require(employerAmount + employeeAmount == item.total - item.attentionFee, "bad split");
@@ -134,8 +136,8 @@ contract RendaSignalEscrow {
         Request storage item = requests[id];
         item.status = Status.Settled;
         delete settlements[id];
-        if (employerAmount > 0) require(token.transfer(item.employer, employerAmount), "employer transfer failed");
-        if (employeeAmount > 0) require(token.transfer(item.employee, employeeAmount), "employee transfer failed");
+        if (employerAmount > 0) _safeTransfer(item.employer, employerAmount);
+        if (employeeAmount > 0) _safeTransfer(item.employee, employeeAmount);
         emit RequestSettled(id, employerAmount, employeeAmount);
     }
 
@@ -148,4 +150,6 @@ contract RendaSignalEscrow {
         require(v == 27 || v == 28, "bad v");
         return ecrecover(digest, v, r, s);
     }
+    function _safeTransfer(address to, uint256 amount) private { (bool ok, bytes memory data)=address(token).call(abi.encodeWithSelector(token.transfer.selector,to,amount)); require(ok&&(data.length==0||abi.decode(data,(bool))),"token transfer failed"); }
+    function _safeTransferFrom(address from,address to,uint256 amount) private { (bool ok, bytes memory data)=address(token).call(abi.encodeWithSelector(token.transferFrom.selector,from,to,amount)); require(ok&&(data.length==0||abi.decode(data,(bool))),"token transferFrom failed"); }
 }
