@@ -39,11 +39,12 @@ export async function POST(request: Request) {
   const amount = BigInt(String(body.amountAtomic));
   const attention = BigInt(String(body.attentionAtomic));
   const acceptBy = Number(body.acceptBy); const deliverBy = Number(body.deliverBy);
-  if (amount <= 0n || attention < 0n || attention > amount || !Number.isSafeInteger(acceptBy) || acceptBy >= deliverBy) return Response.json({ error: "Invalid reward or deadline." }, { status: 400 });
+  const now = Math.floor(Date.now() / 1000);
+  if (amount <= 0n || attention < 0n || attention > amount || !Number.isSafeInteger(acceptBy) || acceptBy >= deliverBy || deliverBy < now + 48 * 60 * 60 - 60) return Response.json({ error: "The reward is invalid or the deadline is less than 48 hours away." }, { status: 400 });
   const title = String(body.title).trim().slice(0, 100); const terms = String(body.terms).trim().slice(0, 4000);
   if (!title || !terms) return Response.json({ error: "Title and terms are required." }, { status: 400 });
   await ensureSchema(db);
-  const id = crypto.randomUUID(); const now = Math.floor(Date.now() / 1000);
+  const id = crypto.randomUUID();
   await db.prepare("INSERT INTO signals (id, sender_x_id, sender_handle, target_x_id, target_handle, employer_wallet, title, terms, amount_atomic, attention_atomic, accept_by, deliver_by, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)")
     .bind(id, profile.id, `@${profile.username}`, "", String(body.targetHandle), String(body.employerWallet).toLowerCase(), title, terms, amount.toString(), attention.toString(), acceptBy, deliverBy, now, now).run();
   return Response.json({ id, status: "draft" }, { status: 201 });
