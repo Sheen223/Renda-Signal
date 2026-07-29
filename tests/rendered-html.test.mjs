@@ -52,7 +52,7 @@ test("Renda Signal multi-page product and metadata are wired", async () => {
   assert.match(history, /mode="history"/);
   assert.match(workspace, /COMPLETED ACTIVITY/);
   assert.match(workspace, /Paid and refunded requests/);
-  assert.match(workspace, /mode!=="sent"\|\|!completed\.has\(item\.status\)/);
+  assert.match(workspace, /filter\(item=>!completed\.has\(item\.status\)\)/);
   assert.doesNotMatch(shell, /0x7A91|For me <i>3/);
   assert.match(newSignal, /wallet_switchEthereumChain/);
   assert.match(newSignal, /functionName:"approve"/);
