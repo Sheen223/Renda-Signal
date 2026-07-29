@@ -57,7 +57,7 @@ test("Renda Signal multi-page product and metadata are wired", async () => {
   assert.match(history, /mode="history"/);
   assert.match(workspace, /COMPLETED ACTIVITY/);
   assert.match(workspace, /Paid and refunded requests/);
-  assert.match(workspace, /filter\(item=>!completed\.has\(item\.status\)\)/);
+  assert.match(workspace, /filter\(item=>!completed\.has\(item\.status\)&&item\.status!=="draft"\)/);
   assert.match(workspace, /settled/);
   assert.match(actions, /This offer has expired/);
   assert.match(actions, /Reclaim full funding/);
