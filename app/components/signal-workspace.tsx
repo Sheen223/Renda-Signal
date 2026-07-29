@@ -6,8 +6,8 @@ import {SignalActions} from "@/app/components/signal-actions";
 type ViewRole="inbox"|"sent";
 type WorkspaceMode=ViewRole|"history";
 type ApiSignal={id:string;sender_handle:string;target_handle:string;title:string;terms:string;amount_atomic:string;attention_atomic:string;deliver_by:number;status:string;funding_hash?:string|null;contract_request_id?:string|null;employee_wallet?:string|null;view_role?:ViewRole};
-const labels:Record<string,string>={draft:"Draft",funding_pending:"Funding needs recovery",funded:"Waiting for recipient",declined:"Declined",accepted:"In progress",submitted:"Under review",revision_requested:"Revision requested",cancel_requested:"Cancellation requested",paid:"Paid",refunded:"Cancelled & refunded",disputed:"In arbitration"};
-const completed=new Set(["paid","refunded"]);
+const labels:Record<string,string>={draft:"Draft",funding_pending:"Funding needs recovery",funded:"Waiting for recipient",expired:"Expired — refund available",declined:"Declined",accepted:"In progress",submitted:"Under review",revision_requested:"Revision requested",cancel_requested:"Cancellation requested",paid:"Paid",refunded:"Cancelled & refunded",settled:"Resolved",disputed:"In arbitration"};
+const completed=new Set(["paid","refunded","settled"]);
 const amount=(atomic:string)=>Number(BigInt(atomic))/1_000_000;
 const date=(seconds:number)=>new Intl.DateTimeFormat(undefined,{dateStyle:"medium",timeStyle:"short"}).format(new Date(seconds*1000));
 

@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("Renda Signal multi-page product and metadata are wired", async () => {
-  const [page, explore, workspace, actions, evidence, acceptApi, actionApi, shell, history, newSignal, shareSignal, setup, polygon, signalsApi, layout, contract, testToken, authStart, authCallback] = await Promise.all([
+  const [page, explore, workspace, actions, evidence, acceptApi, actionApi, shell, history, arbitration, newSignal, shareSignal, setup, polygon, signalsApi, layout, contract, testToken, authStart, authCallback] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/explore/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/components/signal-workspace.tsx", import.meta.url), "utf8"),
@@ -13,6 +13,7 @@ test("Renda Signal multi-page product and metadata are wired", async () => {
     readFile(new URL("../app/api/signals/action/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/components/x-shell.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/x/history/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/x/arbitration/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/x/new/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/x/share/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/x/setup/page.tsx", import.meta.url), "utf8"),
@@ -53,6 +54,13 @@ test("Renda Signal multi-page product and metadata are wired", async () => {
   assert.match(workspace, /COMPLETED ACTIVITY/);
   assert.match(workspace, /Paid and refunded requests/);
   assert.match(workspace, /filter\(item=>!completed\.has\(item\.status\)\)/);
+  assert.match(workspace, /settled/);
+  assert.match(actions, /This offer has expired/);
+  assert.match(actions, /Reclaim full funding/);
+  assert.match(actions, /TRANSACTION CONFIRMED/);
+  assert.match(acceptApi, /expired and can no longer be accepted/);
+  assert.match(arbitration, /RULING CONFIRMED ON-CHAIN/);
+  assert.match(arbitration, /View ruling on PolygonScan/);
   assert.doesNotMatch(shell, /0x7A91|For me <i>3/);
   assert.match(newSignal, /wallet_switchEthereumChain/);
   assert.match(newSignal, /functionName:"approve"/);
