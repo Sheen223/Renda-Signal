@@ -27,7 +27,7 @@ export function SignalWorkspace({mode}:{mode:WorkspaceMode}){
       }else{
         const response=await fetch(`/api/signals?role=${mode==="sent"?"sender":"target"}`),data=await response.json();
         if(!response.ok)throw new Error(data.error||"Could not load signals.");
-        rows=(data.signals as ApiSignal[]).map(item=>({...item,view_role:mode}));
+        rows=(data.signals as ApiSignal[]).filter(item=>mode!=="sent"||!completed.has(item.status)).map(item=>({...item,view_role:mode}));
       }
       setItems(rows);
       setSelectedId(current=>rows.some(item=>item.id===current)?current:rows[0]?.id||"");
