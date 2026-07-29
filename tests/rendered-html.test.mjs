@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("Renda Signal multi-page product and metadata are wired", async () => {
-  const [page, explore, workspace, actions, evidence, acceptApi, actionApi, shell, newSignal, shareSignal, setup, polygon, signalsApi, layout, contract, testToken, authStart, authCallback] = await Promise.all([
+  const [page, explore, workspace, actions, evidence, acceptApi, actionApi, shell, history, newSignal, shareSignal, setup, polygon, signalsApi, layout, contract, testToken, authStart, authCallback] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/explore/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/components/signal-workspace.tsx", import.meta.url), "utf8"),
@@ -12,6 +12,7 @@ test("Renda Signal multi-page product and metadata are wired", async () => {
     readFile(new URL("../app/api/signals/accept/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/signals/action/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/components/x-shell.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/x/history/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/x/new/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/x/share/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/x/setup/page.tsx", import.meta.url), "utf8"),
@@ -42,11 +43,15 @@ test("Renda Signal multi-page product and metadata are wired", async () => {
   assert.match(actions, /Request mutual cancellation/);
   assert.match(evidence, /video\//);
   assert.match(evidence, /audio\//);
-  assert.match(acceptApi, /IDENTITY_SIGNER_SECRET/);
+  assert.match(acceptApi, /IDENTITY_SIGNER_PRIVATE_KEY/);
   assert.match(actionApi, /cancel_requested/);
   assert.doesNotMatch(workspace, /@david|@somiari|SIG-1042/);
   assert.match(shell, /\/api\/auth\/x\/me/);
   assert.match(shell, /profile\.username/);
+  assert.match(shell, /\/x\/history/);
+  assert.match(history, /mode="history"/);
+  assert.match(workspace, /COMPLETED ACTIVITY/);
+  assert.match(workspace, /Paid and refunded requests/);
   assert.doesNotMatch(shell, /0x7A91|For me <i>3/);
   assert.match(newSignal, /wallet_switchEthereumChain/);
   assert.match(newSignal, /functionName:"approve"/);
