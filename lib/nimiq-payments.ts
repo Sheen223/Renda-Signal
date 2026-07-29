@@ -11,6 +11,7 @@ export async function ensureNimiqPaymentSchema(db:D1Database){await db.batch([
  db.prepare("CREATE TABLE IF NOT EXISTS signal_payment_profiles (signal_id TEXT PRIMARY KEY,payment_mode TEXT NOT NULL DEFAULT 'polygon',payout_hash TEXT,refund_hash TEXT,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL)"),
  db.prepare("CREATE INDEX IF NOT EXISTS signal_payment_mode_idx ON signal_payment_profiles (payment_mode, updated_at)"),
  db.prepare("CREATE TABLE IF NOT EXISTS signal_transactions (id TEXT PRIMARY KEY,signal_id TEXT NOT NULL,action TEXT NOT NULL,tx_hash TEXT NOT NULL UNIQUE,created_at INTEGER NOT NULL)"),
+ db.prepare("CREATE TABLE IF NOT EXISTS nimiq_managed_workflows (signal_id TEXT PRIMARY KEY,cancel_requested_by TEXT,ruling_employer_atomic TEXT,ruling_employee_atomic TEXT,employer_settlement_hash TEXT,employee_settlement_hash TEXT,updated_at INTEGER NOT NULL)"),
 ])}
 
 type RpcTransaction={hash?:string;sender?:string;recipient?:string;value?:number|string;data?:string|number[];blockNumber?:number;state?:string;executionResult?:string};
