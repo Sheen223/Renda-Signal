@@ -4,7 +4,7 @@ import { decodeTransactionData, ensureNimiqPaymentSchema, getNimiqPaymentConfig,
 import { getCookie, readSession } from "@/lib/x-auth";
 
 type Row=Record<string,string|number>;
-async function base(request:Request){const db=(env as unknown as{DB?:D1Database}).DB,profile=await readSession(getCookie(request,"renda_x_session"));if(!db||!profile)return null;await ensureNimiqPaymentSchema(db);await ensureNimiqIdentitySchema(db);return{db,profile}}
+async function base(request:Request){const runtime=env as unknown as{DB?:D1Database;EVIDENCE?:R2Bucket},db=runtime.DB,profile=await readSession(getCookie(request,"renda_x_session"));if(!db||!profile)return null;await ensureNimiqPaymentSchema(db);await ensureNimiqIdentitySchema(db);return{db,profile,evidence:runtime.EVIDENCE}}
 async function verifiedAddress(db:D1Database,xId:string){const row=await db.prepare("SELECT address,public_key FROM nimiq_identities WHERE x_user_id=?").bind(xId).first<{address:string;public_key:string}>();if(!row)return null;try{return normalizeNimiqAddress(addressFromPublicKey(row.public_key))===normalizeNimiqAddress(row.address)?row.address:null}catch{return null}}
 const txValue=(tx:Row)=>BigInt(String(tx.value??0));
 
