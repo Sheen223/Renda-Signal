@@ -2,7 +2,6 @@
 import Link from "next/link";
 import {usePathname} from "next/navigation";
 import {ReactNode,useEffect,useState} from "react";
-import {NimiqIdentity} from "./nimiq-identity";
 
 export function XShell({children}:{children:ReactNode}){
   const pathname=usePathname();
@@ -26,6 +25,6 @@ export function XShell({children}:{children:ReactNode}){
   }
   if(profile===undefined)return <main className="auth-loading">Verifying your X identity…</main>;
   if(profile===null)return <main className="auth-gate"><div><span className="network-mark">𝕏</span><h1>Connect X to continue.</h1><p>Your X user ID determines which funded requests only you can accept.</p><a className="cta lime" href="/api/auth/x/start?returnTo=/x">Sign in with X <span>→</span></a><Link href="/explore">Back to networks</Link></div></main>;
-  const links=[["/x","For me"],["/x/sent","Sent"],["/x/history","History"],["/x/new","New signal"],...(wallet&&wallet.toLowerCase()===arbitrator.toLowerCase()?[['/x/arbitration','Admin']]:[])];
-  return <main className="x-app"><header className="x-topbar"><Link className="logo" href="/"><span>R</span><strong>RENDA SIGNAL</strong></Link><nav>{links.map(([href,label])=><Link key={href} className={pathname===href?"active":""} href={href}>{label}</Link>)}</nav><div className="x-actions"><NimiqIdentity/><a className="social-chip" href="/api/auth/x/logout">{profile.profileImageUrl?<img src={profile.profileImageUrl} alt=""/>:<b>𝕏</b>}<span><small>Signed in as</small>@{profile.username}</span></a><button className="wallet-button" onClick={connectWallet}>{wallet?`${wallet.slice(0,6)}…${wallet.slice(-4)}`:"Connect wallet"}</button></div></header><div className="global-testnet"><strong>AMOY TESTNET</strong><span>tUSDT and POL are test tokens with no monetary value.</span><a href="https://amoy.polygonscan.com" target="_blank" rel="noreferrer">View explorer ↗</a></div>{notice&&<div className="toast">{notice}<button onClick={()=>setNotice("")}>×</button></div>}{children}</main>;
+  const links=[["/x","For me"],["/x/sent","Sent"],["/x/history","History"],["/x/new","New signal"],["/x/nim-admin","NIM Admin"],...(wallet&&wallet.toLowerCase()===arbitrator.toLowerCase()?[['/x/arbitration','Admin']]:[])];
+  return <main className="x-app"><header className="x-topbar"><Link className="logo" href="/"><span>R</span><strong>RENDA SIGNAL</strong></Link><nav>{links.map(([href,label])=><Link key={href} className={pathname===href?"active":""} href={href}>{label}</Link>)}</nav><div className="x-actions"><a className="social-chip" href="/api/auth/x/logout">{profile.profileImageUrl?<img src={profile.profileImageUrl} alt=""/>:<b>𝕏</b>}<span><small>Signed in as</small>@{profile.username}</span></a><button className="wallet-button" onClick={connectWallet}>{wallet?`${wallet.slice(0,6)}…${wallet.slice(-4)}`:"Connect wallet"}</button></div></header><div className="global-testnet"><strong>TWO PAYMENT RAILS</strong><span>Managed NIM uses real funds · Polygon tUSDT is testnet only.</span></div>{notice&&<div className="toast">{notice}<button onClick={()=>setNotice("")}>×</button></div>}{children}</main>;
 }

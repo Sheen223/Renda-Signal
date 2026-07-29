@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("Renda Signal multi-page product and metadata are wired", async () => {
-  const [page, explore, workspace, actions, evidence, acceptApi, actionApi, shell, history, arbitration, newSignal, shareSignal, setup, polygon, signalsApi, layout, contract, testToken, authStart, authCallback] = await Promise.all([
+  const [page, explore, workspace, actions, evidence, acceptApi, actionApi, shell, history, arbitration, newSignal, shareSignal, setup, polygon, signalsApi, layout, contract, testToken, authStart, authCallback, nimActions, nimApi, nimAdmin, nimPayments] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/explore/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/components/signal-workspace.tsx", import.meta.url), "utf8"),
@@ -24,6 +24,10 @@ test("Renda Signal multi-page product and metadata are wired", async () => {
     readFile(new URL("../contracts/TestUSDT.sol", import.meta.url), "utf8"),
     readFile(new URL("../app/api/auth/x/start/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/auth/x/callback/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/components/nimiq-signal-actions.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/signals/nimiq/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/x/nim-admin/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../lib/nimiq-payments.ts", import.meta.url), "utf8"),
   ]);
   assert.match(layout, /Renda Signal — Funded requests for anyone on X/);
   assert.match(layout, /twitter:/);
@@ -83,6 +87,14 @@ test("Renda Signal multi-page product and metadata are wired", async () => {
   assert.match(signalsApi, /acceptedTermsHashes/);
   assert.match(signalsApi, /funding_pending/);
   assert.match(newSignal, /\.trim\(\)/);
+  assert.match(newSignal, /sendBasicTransactionWithData/);
+  assert.match(newSignal, /Managed NIM/);
+  assert.match(nimApi, /The NIM payment amount does not match/);
+  assert.match(nimApi, /RENDA-/);
+  assert.match(nimActions, /Accept with Nimiq Pay/);
+  assert.match(nimAdmin, /Pay recipient with Nimiq Pay/);
+  assert.match(nimPayments, /NQ61 9FB3 VXC6 F0Q8 E2P6 Y7FG L704 FHHX GNN7/);
+  assert.doesNotMatch(shell, /Verify Nimiq|NimiqIdentity/);
   assert.match(authStart, /code_challenge_method:"S256"/);
   assert.match(authCallback, /\/2\/oauth2\/token/);
   assert.match(authCallback, /\/2\/users\/me/);

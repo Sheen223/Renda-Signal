@@ -2,12 +2,14 @@
 import {FormEvent,useEffect,useState} from "react";
 import {createPublicClient,createWalletClient,custom,http,parseAbi} from "viem";
 import {polygonAmoy} from "viem/chains";
+import {NimiqSignalActions} from "@/app/components/nimiq-signal-actions";
 const escrowAbi=parseAbi(["function acceptRequest(uint256 id,uint64 authorizationExpiry,bytes32 nonce,bytes signature)","function submitEvidence(uint256 id,bytes32 evidenceHash)","function approve(uint256 id)","function reclaimUnaccepted(uint256 id)","function proposeSettlement(uint256 id,uint256 employerAmount,uint256 employeeAmount)","function acceptSettlement(uint256 id)","function openDispute(uint256 id)","function requests(uint256) view returns (address employer,address employee,address arbitrator,uint256 total,uint256 attentionFee,uint64 acceptBy,uint64 deliverBy,bytes32 targetIdentity,bytes32 termsHash,bytes32 evidenceHash,uint8 status)"]);
 type Provider={request(args:{method:string;params?:unknown[]}):Promise<unknown>};
-type Signal={id:string;status:string;contract_request_id?:string|null;amount_atomic:string;attention_atomic:string;accept_by?:number;employee_wallet?:string|null};
+type Signal={id:string;status:string;payment_mode?:string;contract_request_id?:string|null;amount_atomic:string;attention_atomic:string;accept_by?:number;employee_wallet?:string|null};
 type Review={evidence:Array<{id:string;message:string;createdAt:number;attachments:Array<{name:string;url:string}>}>;disputeEvidence:Array<{id:string;message:string;authorRole:string;createdAt:number;attachments:Array<{name:string;url:string}>}>;messages:Array<{author_role:string;message:string;created_at:number}>;transactions:Array<{action:string;tx_hash:string;created_at:number}>};
 type Config={configured:boolean;rpcUrl:string;escrowAddress:`0x${string}`};
-export function SignalActions({mode,signal,onDone}:{mode:"inbox"|"sent";signal:Signal;onDone:()=>Promise<void>}){
+export function SignalActions(props:{mode:"inbox"|"sent";signal:Signal;onDone:()=>Promise<void>}){return props.signal.payment_mode==="nim"?<NimiqSignalActions {...props}/>:<PolygonSignalActions {...props}/>}
+function PolygonSignalActions({mode,signal,onDone}:{mode:"inbox"|"sent";signal:Signal;onDone:()=>Promise<void>}){
  const[config,setConfig]=useState<Config>(),[busy,setBusy]=useState(""),[notice,setNotice]=useState(""),[attachments,setAttachments]=useState<string[]>([]),[review,setReview]=useState<Review>(),[revision,setRevision]=useState(""),[chat,setChat]=useState(""),[confirmation,setConfirmation]=useState<{title:string;detail:string;hash:`0x${string}`}|null>(null);
  useEffect(()=>{fetch("/api/polygon/config").then(r=>r.json()).then(setConfig)},[]);
  async function refreshReview(){const r=await fetch(`/api/signals/workflow?signalId=${encodeURIComponent(signal.id)}`);if(r.ok)setReview(await r.json())}
