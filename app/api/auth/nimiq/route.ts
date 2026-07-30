@@ -1,5 +1,5 @@
 import { env } from "cloudflare:workers";
-import { addressFromPublicKey, ensureNimiqIdentitySchema, normalizeNimiqAddress, verifyNimiqMessage } from "@/lib/nimiq-identity";
+import { addressFromPublicKey, ensureNimiqIdentitySchema, verifyNimiqMessage } from "@/lib/nimiq-identity";
 import { getCookie, readSession } from "@/lib/x-auth";
 
 async function context(request: Request) {
@@ -31,12 +31,11 @@ export async function POST(request: Request) {
     ]);
     return Response.json({ challengeId: id, message, expiresAt });
   }
-  if (body.action !== "verify" || !body.challengeId || !body.address || !body.publicKey || !body.signature) return Response.json({ error: "Incomplete Nimiq verification." }, { status: 400 });
+  if (body.action !== "verify" || !body.challengeId || !body.publicKey || !body.signature) return Response.json({ error: "Incomplete Nimiq verification." }, { status: 400 });
   const challenge = await ctx.db.prepare("SELECT message,expires_at,used_at FROM nimiq_identity_challenges WHERE id=? AND x_user_id=?").bind(body.challengeId, ctx.profile.id).first<{message:string;expires_at:number;used_at?:number}>();
   if (!challenge || challenge.used_at || challenge.expires_at < now) return Response.json({ error: "This verification request expired. Please try again." }, { status: 409 });
   try {
     const derived = addressFromPublicKey(body.publicKey);
-    if (normalizeNimiqAddress(derived) !== normalizeNimiqAddress(body.address)) throw new Error("The signing key does not belong to the selected Nimiq account.");
     if (!verifyNimiqMessage(challenge.message, body.publicKey, body.signature)) throw new Error("The Nimiq signature is invalid.");
     await ctx.db.batch([
       ctx.db.prepare("UPDATE nimiq_identity_challenges SET used_at=? WHERE id=? AND used_at IS NULL").bind(now, body.challengeId),
