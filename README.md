@@ -81,7 +81,7 @@ stateDiagram-v2
 ## What is already built
 
 - X sign-in and identity checks
-- Public funded requests aimed at an X handle
+- Public funded requests aimed at an immutable X user ID, with the current handle kept for display
 - Prepared X posts for sharing an offer
 - Native NIM payments through Nimiq Pay
 - Polygon Amoy tUSDT smart-contract escrow
@@ -144,11 +144,25 @@ npm run lint
 npm run build
 npm test
 npm run contracts:compile
+npm run judge-demo
 ```
+
+## Judge package
+
+- [Fast judge walkthrough](docs/JUDGE.md)
+- [Claims and trust matrix](docs/CLAIMS.md)
+- [Deployment references](docs/DEPLOYMENTS.md)
+- [Public product proof](https://rendasignal.xyz/proof)
 
 ## Safety
 
-The Polygon build runs on the Amoy testnet. Its tUSDT and POL have no monetary value. The NIM flow uses a managed account, so it should only be used with small amounts during this beta.
+The Polygon build runs on the Amoy testnet. Its tUSDT and POL have no monetary value. The NIM flow uses managed custody, so it should only be used with small amounts during this beta. Read the full [security and timeout policy](SECURITY.md).
+
+## Contract verification
+
+The app exposes its configured Polygon addresses through `/api/polygon/config`. Contract source is in `contracts/`, reproducible ABI and bytecode are generated with `npm run contracts:compile`, and confirmed actions link to PolygonScan from the request history.
+
+The escrow source now uses dedicated full-refund cancellation functions. Terminal paths clear pending cancellation state, and `_settle` rejects every already-closed request. A source change requires a new deployment; never assume an older deployed address received the fix automatically.
 
 ## Links
 

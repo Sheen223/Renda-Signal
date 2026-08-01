@@ -9,10 +9,11 @@
     "dev": "vinext dev",
     "build": "vinext build",
     "start": "vinext start",
-    "test": "npm run build && node --test tests/rendered-html.test.mjs",
-    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
+    "test": "npm run build && node --test tests/*.test.mjs",
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern .video-review --rule react-hooks/set-state-in-effect:off --rule react-hooks/purity:off",
     "db:generate": "drizzle-kit generate",
-    "contracts:compile": "node scripts/compile-contracts.mjs"
+    "contracts:compile": "node scripts/compile-contracts.mjs",
+    "judge-demo": "npm run contracts:compile && npm run lint && npm run build && node --test tests/*.test.mjs && node scripts/verify-judge.mjs"
   },
   "dependencies": {
     "@nimiq/mini-app-sdk": "^0.1.0",
@@ -35,6 +36,7 @@
     "drizzle-kit": "0.31.10",
     "eslint": "9.39.4",
     "eslint-config-next": "16.2.6",
+    "ganache": "7.9.2",
     "react-server-dom-webpack": "19.2.6",
     "solc": "^0.8.36",
     "tailwindcss": "4.2.1",

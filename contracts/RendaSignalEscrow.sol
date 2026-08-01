@@ -23,13 +23,11 @@ contract RendaSignalEscrow {
         bytes32 evidenceHash;
         Status status;
     }
-    struct Settlement { uint256 employerAmount; uint256 employeeAmount; address proposer; }
-
     IERC20Signal public immutable token;
     address public immutable identitySigner;
     uint256 public nextRequestId = 1;
     mapping(uint256 => Request) public requests;
-    mapping(uint256 => Settlement) public settlements;
+    mapping(uint256 => address) public cancellationRequester;
     mapping(bytes32 => bool) public usedAuthorizations;
     uint256 private unlocked = 1;
 
@@ -37,7 +35,7 @@ contract RendaSignalEscrow {
     event RequestAccepted(uint256 indexed id, address indexed employee, uint256 attentionFee);
     event EvidenceSubmitted(uint256 indexed id, bytes32 evidenceHash);
     event DisputeOpened(uint256 indexed id);
-    event SettlementProposed(uint256 indexed id, address indexed proposer, uint256 employerAmount, uint256 employeeAmount);
+    event CancellationRequested(uint256 indexed id, address indexed requester);
     event RequestSettled(uint256 indexed id, uint256 employerAmount, uint256 employeeAmount);
 
     modifier onlyEmployer(uint256 id) { require(msg.sender == requests[id].employer, "not employer"); _; }
@@ -88,6 +86,7 @@ contract RendaSignalEscrow {
         require(item.status == Status.Submitted, "not submitted");
         uint256 remaining = item.total - item.attentionFee;
         item.status = Status.Settled;
+        delete cancellationRequester[id];
         _safeTransfer(item.employee, remaining);
         emit RequestSettled(id, 0, remaining);
     }
@@ -108,21 +107,23 @@ contract RendaSignalEscrow {
         emit DisputeOpened(id);
     }
 
-    function proposeSettlement(uint256 id, uint256 employerAmount, uint256 employeeAmount) external {
+    /// @notice Ask the other party to cancel. Cancellation always refunds the employer.
+    function requestCancellation(uint256 id) external {
         Request storage item = requests[id];
         require(msg.sender == item.employer || msg.sender == item.employee, "not a party");
-        require(item.status == Status.Accepted || item.status == Status.Submitted || item.status == Status.Disputed, "closed");
-        require(employerAmount + employeeAmount == item.total - item.attentionFee, "bad split");
-        settlements[id] = Settlement(employerAmount, employeeAmount, msg.sender);
-        emit SettlementProposed(id, msg.sender, employerAmount, employeeAmount);
+        require(item.status == Status.Accepted || item.status == Status.Submitted, "closed");
+        cancellationRequester[id] = msg.sender;
+        emit CancellationRequested(id, msg.sender);
     }
 
-    function acceptSettlement(uint256 id) external nonReentrant {
+    /// @notice The other party accepts a full refund of the remaining escrow.
+    function acceptCancellation(uint256 id) external nonReentrant {
         Request storage item = requests[id];
-        Settlement memory deal = settlements[id];
-        require(deal.proposer != address(0) && deal.proposer != msg.sender, "bad acceptance");
+        require(item.status == Status.Accepted || item.status == Status.Submitted, "request closed");
+        address requester = cancellationRequester[id];
+        require(requester != address(0) && requester != msg.sender, "bad acceptance");
         require(msg.sender == item.employer || msg.sender == item.employee, "not a party");
-        _settle(id, deal.employerAmount, deal.employeeAmount);
+        _settle(id, item.total - item.attentionFee, 0);
     }
 
     function arbitrate(uint256 id, uint256 employerAmount, uint256 employeeAmount) external nonReentrant {
@@ -134,8 +135,10 @@ contract RendaSignalEscrow {
 
     function _settle(uint256 id, uint256 employerAmount, uint256 employeeAmount) internal {
         Request storage item = requests[id];
+        require(item.status == Status.Accepted || item.status == Status.Submitted || item.status == Status.Disputed, "request closed");
+        require(employerAmount + employeeAmount == item.total - item.attentionFee, "bad split");
         item.status = Status.Settled;
-        delete settlements[id];
+        delete cancellationRequester[id];
         if (employerAmount > 0) _safeTransfer(item.employer, employerAmount);
         if (employeeAmount > 0) _safeTransfer(item.employee, employeeAmount);
         emit RequestSettled(id, employerAmount, employeeAmount);

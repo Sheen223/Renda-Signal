@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("Renda Signal multi-page product and metadata are wired", async () => {
-  const [page, explore, workspace, actions, evidence, acceptApi, actionApi, shell, history, arbitration, newSignal, shareSignal, setup, polygon, signalsApi, layout, contract, testToken, authStart, authCallback, nimActions, nimApi, nimAdmin, nimPayments] = await Promise.all([
+  const [page, explore, workspace, actions, evidence, acceptApi, actionApi, shell, history, arbitration, newSignal, shareSignal, setup, polygon, signalsApi, layout, contract, testToken, authStart, authCallback, nimActions, nimApi, nimAdmin, nimPayments, proofPage, proofApi, xUsers] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/explore/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/components/signal-workspace.tsx", import.meta.url), "utf8"),
@@ -28,6 +28,9 @@ test("Renda Signal multi-page product and metadata are wired", async () => {
     readFile(new URL("../app/api/signals/nimiq/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/x/nim-admin/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../lib/nimiq-payments.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/proof/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/proof/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../lib/x-users.ts", import.meta.url), "utf8"),
   ]);
   assert.match(layout, /Renda Signal — Funded requests for anyone on X/);
   assert.match(layout, /twitter:/);
@@ -100,10 +103,19 @@ test("Renda Signal multi-page product and metadata are wired", async () => {
   assert.match(authCallback, /\/2\/users\/me/);
   assert.match(page, /Polygon/);
   assert.doesNotMatch(page, /Nimiq Quest|codex-preview/);
-  assert.match(contract, /function acceptSettlement/);
+  assert.match(contract, /function acceptCancellation/);
+  assert.match(contract, /require\(item\.status == Status\.Accepted \|\| item\.status == Status\.Submitted \|\| item\.status == Status\.Disputed, "request closed"\)/);
+  assert.doesNotMatch(contract, /function acceptSettlement/);
+  assert.doesNotMatch(contract, /function proposeSettlement/);
   assert.match(contract, /function arbitrate/);
   assert.match(contract, /function reclaimUnaccepted/);
   assert.match(contract, /employerAmount \+ employeeAmount == item\.total - item\.attentionFee/);
   assert.match(contract, /modifier nonReentrant/);
   assert.match(testToken, /Renda Test USDT/);
+  assert.match(proofPage, /Don’t trust the pitch/);
+  assert.match(proofPage, /No fake decentralization/);
+  assert.match(proofApi, /Cache-Control/);
+  assert.doesNotMatch(proofApi, /terms|public_url|object_key|sender_handle|target_handle/);
+  assert.match(xUsers, /X_BEARER_TOKEN/);
+  assert.match(signalsApi, /target\.id/);
 });
