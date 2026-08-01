@@ -92,6 +92,7 @@ test("Renda Signal multi-page product and metadata are wired", async () => {
   assert.match(newSignal, /\.trim\(\)/);
   assert.match(newSignal, /sendBasicTransactionWithData/);
   assert.match(newSignal, /Managed NIM/);
+  assert.match(newSignal, /useState<"polygon"\|"nim">\("nim"\)/);
   assert.match(nimApi, /The NIM payment amount does not match/);
   assert.match(nimApi, /RENDA-/);
   assert.match(nimActions, /Accept with Nimiq Pay/);
@@ -101,7 +102,8 @@ test("Renda Signal multi-page product and metadata are wired", async () => {
   assert.match(authStart, /code_challenge_method:"S256"/);
   assert.match(authCallback, /\/2\/oauth2\/token/);
   assert.match(authCallback, /\/2\/users\/me/);
-  assert.match(page, /Polygon/);
+  assert.match(page, /NIMIQ PAY/);
+  assert.match(page, /REAL NIM/);
   assert.doesNotMatch(page, /Nimiq Quest|codex-preview/);
   assert.match(contract, /function acceptCancellation/);
   assert.match(contract, /require\(item\.status == Status\.Accepted \|\| item\.status == Status\.Submitted \|\| item\.status == Status\.Disputed, "request closed"\)/);
